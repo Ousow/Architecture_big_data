@@ -1,17 +1,5 @@
 """
-mongo_ingest.py (v2)
-──────────────────────
-Architecture corrigée selon les consignes du prof :
-
-- MongoDB héberge la collection `enterprises_rich` (peuplée par
-  import_kbo_enriched.py) — c'est la SOURCE des numéros BCE à scraper.
-- MongoDB héberge aussi `state_db` : le tracking de CHAQUE fichier
-  téléchargé (numéro BCE, deposit_id, année, statut pending/done/error,
-  chemin HDFS, timestamp). Source de vérité pour la delta detection —
-  on ne re-télécharge jamais ce qui existe déjà.
-- TOUT le contenu brut (CSV et PDF, peu importe la source NBB/StaPor/
-  eJustice) part vers HDFS Bronze. Mongo ne stocke plus aucun binaire,
-  seulement les métadonnées de suivi.
+mongo_ingest.py 
 """
 
 import logging
