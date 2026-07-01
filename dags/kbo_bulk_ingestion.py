@@ -1,28 +1,7 @@
 """
-DAG : kbo_bulk_ingestion (v2)
-───────────────────────────────
-Architecture conforme aux consignes du prof :
+DAG : kbo_bulk_ingestion 
 
-  1. (Préalable, hors DAG) import_kbo_enriched.py peuple MongoDB
-     avec la collection `enterprises_rich` (le dump KBO complet,
-     entreprise + activity + address + branch + contact +
-     establishment + denomination, joints par numéro BCE).
-
-  2. Ce DAG lit les numéros BCE DEPUIS MongoDB (enterprises_rich),
-     vérifie la State DB pour la delta detection (ne retélécharge
-     jamais ce qui existe déjà), puis télécharge CSV + PDF vers
-     HDFS Bronze depuis NBB et StaPor (eJustice en attente de
-     clarification technique — voir nbb_scraper.py / stapor_scraper.py).
-
-  3. Toute opération met à jour la State DB unifiée (collection
-     `state_db`) : numéro BCE, source, année, doc_type, statut
-     (pending/done/error), chemin HDFS, timestamp.
-
-  4. Checkpoint par batch (collection `batch_state`) : un batch
-     entièrement terminé n'est jamais rejoué, même si le run est
-     interrompu et relancé.
-
-  5. IMPORTANT — limite Airflow de dynamic task mapping : Airflow
+— limite Airflow de dynamic task mapping : Airflow
      refuse tout XCom mappé contenant plus de 1024 éléments
      (UnmappableXComLengthPushed). Avec BATCH_SIZE=50 entreprises par
      micro-batch, un run de 500 000 entreprises produit 10 000
