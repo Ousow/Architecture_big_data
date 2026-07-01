@@ -1,0 +1,165 @@
+version: "3.8"
+
+x-airflow-common: &airflow-common
+  image: apache/airflow:2.9.3-python3.11
+  environment: &airflow-common-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    AIRFLOW__CORE__FERNET_KEY: ""
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__API__AUTH_BACKENDS: "airflow.api.auth.backend.basic_auth"
+    MONGO_URI: "mongodb://mongo:27017"
+    MONGO_DB: "kbo_db"
+    HDFS_URL: "http://namenode:9870"
+    HDFS_USER: "root"
+    TOR_PROXIES: "socks5://tor1:9050,socks5://tor2:9050,socks5://tor3:9050"
+    _PIP_ADDITIONAL_REQUIREMENTS: "pymongo==4.8.0 requests==2.32.3 hdfs==2.7.3 PySocks==1.7.1"
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./scripts:/opt/airflow/scripts
+    - ./data:/opt/airflow/data
+    - airflow_logs:/opt/airflow/logs
+  user: "${AIRFLOW_UID:-50000}:0"
+  depends_on:
+    postgres:
+      condition: service_healthy
+    namenode:
+      condition: service_started
+
+services:
+
+  # ── Base Postgres pour les métadonnées Airflow ──────────────────
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 5
+    restart: always
+
+  # ── MongoDB :
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    restart: always
+
+  # ── HDFS : 
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    environment:
+      - CLUSTER_NAME=nbb_cluster
+    env_file:
+      - ./hadoop.env
+    ports:
+      - "9870:9870"
+      - "9000:9000"
+    volumes:
+      - hdfs_namenode:/hadoop/dfs/name
+    restart: always
+
+  datanode:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    environment:
+      - SERVICE_PRECONDITION=namenode:9870
+    env_file:
+      - ./hadoop.env
+    ports:
+      - "9864:9864"
+    volumes:
+      - hdfs_datanode:/hadoop/dfs/data
+    depends_on:
+      - namenode
+    restart: always
+
+  # ── Proxies Tor en rotation — pour StaPor/eJustice si rate-limit/IP-block ──
+  tor1:
+    image: dperson/torproxy
+    container_name: tor1
+    restart: unless-stopped
+    ports:
+      - "9050:9050"
+      - "9051:9051"
+    environment:
+      - CONTROL_PASSWORD=mypass
+
+  tor2:
+    image: dperson/torproxy
+    container_name: tor2
+    restart: unless-stopped
+    ports:
+      - "9052:9050"
+      - "9053:9051"
+    environment:
+      - CONTROL_PASSWORD=mypass
+
+  tor3:
+    image: dperson/torproxy
+    container_name: tor3
+    restart: unless-stopped
+    ports:
+      - "9054:9050"
+      - "9055:9051"
+    environment:
+      - CONTROL_PASSWORD=mypass
+
+  # Interface web optionnelle pour inspecter Mongo
+  mongo-express:
+    image: mongo-express:1.0.2
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_BASICAUTH: "false"
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mongo
+    restart: always
+
+  # ── Airflow init : crée la DB + l'utilisateur admin ──────────────
+  airflow-init:
+    <<: *airflow-common
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        airflow db migrate
+        airflow users create \
+          --username admin --password admin \
+          --firstname Admin --lastname User \
+          --role Admin --email admin@example.com || true
+
+  # ── Airflow webserver ─────────────────────────────────────────────
+  airflow-webserver:
+    <<: *airflow-common
+    command: webserver
+    ports:
+      - "8080:8080"
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    restart: always
+
+  # ── Airflow scheduler ──────────────────────────────────────────────
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    restart: always
+
+volumes:
+  postgres_data:
+  mongo_data:
+  airflow_logs:
+  hdfs_namenode:
+  hdfs_datanode:
