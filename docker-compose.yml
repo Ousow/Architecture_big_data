@@ -1,7 +1,10 @@
 version: "3.8"
 
 x-airflow-common: &airflow-common
-  image: apache/airflow:2.9.3-python3.11
+  build:
+    context: .
+    dockerfile: Dockerfile.airflow
+  image: kbo-airflow-spark:latest
   environment: &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
@@ -123,6 +126,37 @@ services:
     depends_on:
       - mongo
     restart: always
+
+  # ── API FastAPI ─────────────────────────────────────────────────
+  api:
+    image: python:3.11-slim
+    working_dir: /app
+    volumes:
+      - ./api:/app
+    ports:
+      - "8000:8000"
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+      MONGO_DB: kbo_db
+    command: bash -c "pip install --no-cache-dir -r requirements.txt && uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+    depends_on:
+      - mongo
+    restart: unless-stopped
+
+  # ── Frontend React ──────────────────────────────────────────────
+  frontend:
+    image: node:20-slim
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:8000
+    command: bash -c "npm install && npm run dev"
+    depends_on:
+      - api
+    restart: unless-stopped
 
   # ── Airflow init : crée la DB + l'utilisateur admin ──────────────
   airflow-init:

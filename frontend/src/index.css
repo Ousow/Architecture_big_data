@@ -1,0 +1,142 @@
+* { box-sizing: border-box; }
+
+:root {
+  --navy: #1E2761;
+  --navy-light: #2E3A7A;
+  --ice: #EAF0FF;
+  --bg: #F5F6FA;
+  --card: #FFFFFF;
+  --text: #1A1A2E;
+  --muted: #6B7280;
+  --border: #E7E9F0;
+  --green: #0F9D58;
+  --green-bg: #E6F7EE;
+  --red: #D93025;
+  --red-bg: #FDECEA;
+  --amber: #B8860B;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", -apple-system, Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app { max-width: 920px; margin: 0 auto; padding: 32px 20px 60px; }
+
+.app h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--navy);
+  margin: 0 0 20px;
+  letter-spacing: -0.01em;
+}
+
+.search-bar {
+  width: 100%;
+  padding: 14px 18px;
+  font-size: 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  outline: none;
+  background: var(--card);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.search-bar:focus {
+  border-color: var(--navy);
+  box-shadow: 0 0 0 4px rgba(30, 39, 97, 0.08);
+}
+
+.result-list { list-style: none; padding: 0; margin: 18px 0 0; }
+.result-item {
+  padding: 14px 18px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s;
+}
+.result-item:hover {
+  border-color: var(--navy);
+  box-shadow: 0 4px 16px rgba(30, 39, 97, 0.1);
+  transform: translateY(-1px);
+}
+.result-item .denom { font-weight: 600; color: var(--text); font-size: 15px; }
+.result-item .meta { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px 24px;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
+}
+
+.back-link {
+  cursor: pointer;
+  color: var(--navy);
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 18px;
+  display: inline-block;
+  transition: opacity 0.12s;
+}
+.back-link:hover { opacity: 0.7; }
+
+.entreprise-header h2 { margin: 0 0 6px; font-size: 22px; color: var(--navy); }
+.entreprise-header .subline { margin: 0; color: var(--muted); font-size: 13.5px; }
+.entreprise-header .address { margin: 12px 0 0; font-size: 14px; color: var(--text); }
+.entreprise-header .since { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+
+.ratios-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.ratios-table th, .ratios-table td {
+  text-align: right; padding: 11px 10px; border-bottom: 1px solid var(--border);
+  font-weight: 400; color: var(--text);
+}
+.ratios-table th { text-align: left; font-weight: 500; color: var(--muted); }
+.ratios-table tr:last-child td, .ratios-table tr:last-child th { border-bottom: none; }
+.ratios-table td.positive { color: var(--green); font-weight: 600; }
+.ratios-table td.negative { color: var(--red); font-weight: 600; }
+
+.year-selector { display: flex; gap: 8px; margin-bottom: 14px; }
+.year-btn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text);
+  transition: all 0.12s;
+}
+.year-btn:hover { border-color: var(--navy); }
+.year-btn.active { background: var(--navy); color: white; border-color: var(--navy); }
+
+.activities-list { list-style: none; padding: 0; margin: 0; }
+.activities-list li {
+  padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px;
+  display: flex; align-items: baseline; gap: 4px;
+}
+.activities-list li:last-child { border-bottom: none; }
+.badge {
+  display: inline-block; padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 600; margin-right: 8px; letter-spacing: 0.02em;
+}
+.badge.main { background: var(--ice); color: var(--navy); }
+.badge.seco { background: #F3F4F6; color: var(--muted); }
+.nace-code { color: var(--muted); font-size: 12.5px; }
+
+.schema-note { margin-top: 14px; margin-bottom: 0; font-size: 12px; color: var(--muted); }
+
+.sankey-legend {
+  display: flex; gap: 18px; margin-top: 10px; font-size: 12px; color: var(--muted);
+}
+.sankey-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sankey-legend .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
