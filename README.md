@@ -11,9 +11,9 @@ Pipeline data engineering de bout en bout : ingestion de l'intégralité du regi
 ![Recherche](screenshots/interface.png)
 
 **Fiche entreprise — identité et activités**
-![1er exemple](screenshots/exemple1.png)
+![1er exemple](screenshots/Exemple1.png)
 
-**Sankey du compte de résultat**
+**Deuxiéme exemple**
 ![2e exemple](screenshots/Exemple2.png)
 
 ---
